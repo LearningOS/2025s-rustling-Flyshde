@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T:PartialOrd> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T:PartialOrd> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -71,12 +70,45 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merged = LinkedList::new();
+        
+        let mut a_ptr = list_a.start;
+        let mut b_ptr = list_b.start;
+        
+        while let (Some(a_node), Some(b_node)) = (a_ptr, b_ptr) {
+            unsafe {
+                let a_val = &(*a_node.as_ptr()).val;
+                let b_val = &(*b_node.as_ptr()).val;
+                
+                if *a_val <= *b_val {
+                    let node = Box::from_raw(a_node.as_ptr());
+                    merged.add(node.val);
+                    a_ptr = node.next;
+                } else {
+                    let node = Box::from_raw(b_node.as_ptr());
+                    merged.add(node.val);
+                    b_ptr = node.next;
+                }
+            }
         }
+        
+        while let Some(node_ptr) = a_ptr {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                merged.add(node.val);
+                a_ptr = node.next;
+            }
+        }
+        
+        while let Some(node_ptr) = b_ptr {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                merged.add(node.val);
+                b_ptr = node.next;
+            }
+        }
+        
+        merged
 	}
 }
 
